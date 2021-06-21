@@ -9,8 +9,6 @@ import logging
 import pytest
 from brewblox_service import service
 
-from YOUR_PACKAGE.__main__ import create_parser
-
 
 @pytest.fixture(scope='session', autouse=True)
 def log_enabled():
@@ -23,7 +21,6 @@ def log_enabled():
 @pytest.fixture
 def app_config() -> dict:
     return {
-        'poll_interval': 5,
     }
 
 
@@ -31,7 +28,6 @@ def app_config() -> dict:
 def sys_args(app_config) -> list:
     return [str(v) for v in [
         'app_name',
-        '--poll-interval', app_config['poll_interval'],
     ]]
 
 
@@ -44,8 +40,7 @@ def event_loop(loop):
 
 @pytest.fixture
 def app(sys_args):
-    parser = create_parser('default')
-    app = service.create_app(parser=parser, raw_args=sys_args[1:])
+    app = service.create_app('default_name', raw_args=sys_args[1:])
     return app
 
 
