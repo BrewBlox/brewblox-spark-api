@@ -39,7 +39,8 @@ class BlocksApi(features.ServiceFeature):
         await mqtt.subscribe(app, f'{STATE_TOPIC}/{self._service_id}/#')
 
     async def shutdown(self, app: web.Application):
-        self._ready_evt = None
+        if self._ready_evt:
+            self._ready_evt.clear()
         await mqtt.unsubscribe(app, f'{STATE_TOPIC}/{self._service_id}/#')
         await mqtt.unlisten(app, f'{STATE_TOPIC}/{self._service_id}/patch', self._on_patch)
         await mqtt.unlisten(app, f'{STATE_TOPIC}/{self._service_id}', self._on_state)
@@ -70,10 +71,11 @@ class BlocksApi(features.ServiceFeature):
         if not self._state:
             return
 
-        affected = payload['deleted'] + [
-            block['id'] for block in payload['changed']
+        data = payload['data']
+        affected = data['deleted'] + [
+            block['id'] for block in data['changed']
         ]
-        self._state['blocks'] = payload['changed'] + [
+        self._state['blocks'] = data['changed'] + [
             block for block in self._state['blocks']
             if not block['id'] in affected
         ]
@@ -94,7 +96,7 @@ class BlocksApi(features.ServiceFeature):
         except (KeyError, TypeError):
             return []
 
-    async def on_blocks_change(self, cb) -> None:
+    def on_blocks_change(self, cb) -> None:
         self._listeners.add(cb)
 
     async def create(self, block: dict) -> dict:
