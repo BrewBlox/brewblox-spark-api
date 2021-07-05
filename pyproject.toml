@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "brewblox-spark-api"
-version = "0.1.1"
+version = "0.2.0"
 description = "Client-side API for consuming Spark blocks"
 authors = ["BrewPi.bv <development@brewpi.com>"]
 license = "GPL-3.0"
@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<4"
-brewblox-service = ">=0.32"
+brewblox-service = "0.33"
 
 [tool.poetry.dev-dependencies]
 pytest-flake8 = "^1.0.7"
