@@ -11,7 +11,7 @@ brewblox_service modules:
 import asyncio
 from contextlib import suppress
 from copy import deepcopy
-from typing import Awaitable, Callable, List, Set
+from typing import Awaitable, Callable, List, Optional, Set
 
 from aiohttp import web
 from brewblox_service import brewblox_logger, features, http, mqtt
@@ -99,8 +99,13 @@ class BlocksApi(features.ServiceFeature):
     def on_blocks_change(self, cb) -> None:
         self._listeners.add(cb)
 
+    def cached_block(self, id: str) -> Optional[dict]:
+        return next((block for block in self.blocks if block['id'] == id), None)
+
+    async def wait_ready(self, timeout=None):
+        await asyncio.wait_for(self._ready_evt.wait(), timeout=timeout)
+
     async def create(self, block: dict) -> dict:
-        await self._ready_evt.wait()
         resp = await http.session(self.app).post(
             f'{self._url}/blocks/create',
             json=block,
@@ -108,7 +113,6 @@ class BlocksApi(features.ServiceFeature):
         return await resp.json()
 
     async def read(self, id: str) -> dict:
-        await self._ready_evt.wait()
         resp = await http.session(self.app).post(
             f'{self._url}/blocks/read',
             json={'id': id},
@@ -116,7 +120,6 @@ class BlocksApi(features.ServiceFeature):
         return await resp.json()
 
     async def write(self, block: dict) -> dict:
-        await self._ready_evt.wait()
         resp = await http.session(self.app).post(
             f'{self._url}/blocks/write',
             json=block,
@@ -124,7 +127,6 @@ class BlocksApi(features.ServiceFeature):
         return await resp.json()
 
     async def patch(self, id: str, partial: dict) -> dict:
-        await self._ready_evt.wait()
         resp = await http.session(self.app).post(
             f'{self._url}/blocks/patch',
             json={'id': id, 'data': partial},
@@ -132,7 +134,6 @@ class BlocksApi(features.ServiceFeature):
         return await resp.json()
 
     async def delete(self, id: str) -> None:
-        await self._ready_evt.wait()
         await http.session(self.app).post(
             f'{self._url}/blocks/delete',
             json={'id': id},
