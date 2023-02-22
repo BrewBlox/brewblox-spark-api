@@ -55,7 +55,7 @@ class BlocksApi(features.ServiceFeature):
 
         synchronized = False
         with suppress(KeyError, TypeError):
-            synchronized = self._state['status']['is_synchronized'] is True
+            synchronized = self._state['connection_status'] == 'SYNCHRONIZED'
 
         if synchronized != self._ready_evt.is_set():
             if synchronized:
